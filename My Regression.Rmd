@@ -1,0 +1,114 @@
+---
+title: "My Assignment"
+author: "Eldirdir Fadol"
+date: "July 28, 2016"
+output: pdf_document
+---
+Executive Summary
+Motor Trend is a magazine about the automobile industry. It is interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome), particularly:
+
+"Is an automatic or manual transmission better for MPG"
+"Quantify the MPG difference between automatic and manual transmissions"
+Using a data set from Motor Trend Magazine along with linear regression and hypothesis testing, it can be concluded that there is a significant difference between the MPG of automatic and manual transmission cars.
+
+To quantify the MPG difference between automatic and manual transmission cars, a linear regression model that took into account the weight, the type of transmission and the acceleration (qsec) was used. Controlling for these factors, manual transmission cars have a better fuel efficiency of 2.94 MPG more than automatic transmission cars.
+
+Load Necessary Libraries
+```{r }
+library(ggplot2)
+library(dplyr)
+
+```
+Reading the Data
+```{r}
+data(mtcars)
+str(mtcars)
+
+```
+Processing the Data
+Convert "am" from numeric variable to a factor variable. "AT" = Automatic Transmission, "MT" = Manual Transmission
+```{r}
+mtcars$am<-as.factor(mtcars$am)
+levels(mtcars$am)<-c("AT", "MT")
+
+```
+Exploratory Data Analysis
+Mean of Automatic and Manual Transmission cars:
+```{r}
+aggregate(mpg~am, data=mtcars, mean)
+```
+The mean MPG of manual transmission cars is 7.245 MPG higher than that of automatic transmission cars. Is this difference significant?
+
+Running a t-test:
+```{r}
+atData<-mtcars[mtcars$am == "AT",]
+mtData<-mtcars[mtcars$am == "MT",]
+t.test(atData$mpg, mtData$mpg)
+```
+The p-value of the t-test is 0.001374, which falls within the 95% confidence interval. Hence, controlling for all other variables, there is a significant difference between the mean MPG of automatic and manual cars.
+
+Histogram of the mpg for AT and MT cars
+```{r}
+ggplot(data = mtcars, aes(mpg)) + geom_histogram() + facet_grid(.~am) + labs(x = "Miles per Gallon", y = "Frequency", title = "MPG Histogram for AT and MT cars")
+
+```
+Boxplot of the mpg for AT and MT cars
+```{r}
+ggplot(data = mtcars, aes(am,mpg)) + geom_boxplot() + labs(x= "Transmission", y = "MPG", title = "MPG: AT vs MT")
+
+```
+
+Correlations:
+```{r}
+corr <- select(mtcars, mpg,cyl,disp,wt,qsec, am)
+pairs(corr)
+
+```
+ Linear Models
+ 
+Model 1: Regress mpg against am
+```{r}
+fit_1 <-lm(mpg~am, data = mtcars)
+summary(fit_1)
+
+```
+From this simple linear regression model of mpg against am, manual transmission cars have 7.24 MPG more than automatic transmission cars. The R^2 value of this model is 0.3598, meaning that it only explains 35.98% of the variance
+
+Model 2: Using the Step Function
+```{r}
+fit_2 = step(lm(data = mtcars, mpg ~ .),trace=0,steps=10000)
+summary(fit_2)
+```
+This model uses a step algorithm to pick the variables that affect the mpg of cars the most. From the model, the weight, acceleration as well as the transmission mode affect the mpg of the car the most.
+
+Based on this multivariate regression model, a manual transmission car has a fuel efficiency of 2.94 MPG higher than that of automatic transmission cars. The adjusted R^2 of the model is 0.834, meaning that 83% of the variance in mpg can be explained by the model.
+```{r}
+fit_step<-lm(mpg~ am + wt + qsec, data = mtcars)
+anova(fit_1, fit_step)
+```
+
+
+**Conclusion**
+
+In conclusion, holding the weight and acceleration (qsec) of the car constant, manual transmission cars offer 2.94 MPG better fuel efficiency.
+
+**Appendix**
+```{r}
+par(mfrow = c(2,2))
+plot(fit_2)
+```
+
+ANOVA of the 2 Models
+
+R Markdown
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+## Including Plots
+You can also embed plots, for example:
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
